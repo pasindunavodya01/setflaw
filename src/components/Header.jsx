@@ -22,7 +22,7 @@ export default function Header({ session }) {
         </div>
         {session && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <div className="header-badge">Signed in as {session.user.email}</div>
+            <div className="header-badge"> {session.user.email}</div>
             <button 
               onClick={handleReload} 
               title="Reload from server" 
