@@ -1,11 +1,14 @@
 import React from 'react'
 
-export default function Header(){
+export default function Header({ session }) {
   return (
     <header>
-      <div style={{display:'flex',alignItems:'center',gap:12}}>
-        <h2 style={{margin:0}}>SetFlow</h2>
-        <small style={{opacity:0.8}}>Progressive overload tracker</small>
+      <div className="header-inner">
+        <div>
+          <h1>SetFlow</h1>
+          <p>Progressive overload tracker</p>
+        </div>
+        {session && <div className="header-badge">Signed in as {session.user.email}</div>}
       </div>
     </header>
   )
