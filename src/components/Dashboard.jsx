@@ -152,7 +152,7 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
     )
 
     return (
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'system-ui, -apple-system, sans-serif', width: '100%', boxSizing: 'border-box' }}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
             <div>

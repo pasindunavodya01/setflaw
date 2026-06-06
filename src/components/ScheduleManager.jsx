@@ -108,7 +108,7 @@ export default function ScheduleManager({ schedule, setSchedule }) {
   const btnDangerStyle = { background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: '24px', alignItems: 'start', width: '100%', boxSizing: 'border-box' }}>
       {schedule.map((day) => {
         const isExpanded = expandedDayId === day.id;
         return (
