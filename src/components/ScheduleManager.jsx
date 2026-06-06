@@ -14,6 +14,7 @@ function createSet() {
 
 export default function ScheduleManager({ schedule, setSchedule }) {
   const [newDayName, setNewDayName] = useState('')
+  const [importTexts, setImportTexts] = useState({})
 
   const addDay = () => {
     const name = newDayName.trim() || 'New workout day'
@@ -31,6 +32,16 @@ export default function ScheduleManager({ schedule, setSchedule }) {
 
   const addExercise = (dayId) => {
     setSchedule(schedule.map(day => day.id === dayId ? { ...day, exercises: [...day.exercises, createExercise()] } : day))
+  }
+
+  const importExercises = (dayId) => {
+    const text = (importTexts[dayId] || '').trim()
+    if (!text) return
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+    if (lines.length === 0) return
+    const newExercises = lines.map(name => ({ ...createExercise(), name }))
+    setSchedule(schedule.map(day => day.id === dayId ? { ...day, exercises: [...day.exercises, ...newExercises] } : day))
+    setImportTexts(prev => ({ ...prev, [dayId]: '' }))
   }
 
   const updateExercise = (dayId, exerciseId, updates) => {
@@ -105,6 +116,23 @@ export default function ScheduleManager({ schedule, setSchedule }) {
             <div>
               <button className="secondary" onClick={() => addExercise(day.id)}>Add exercise</button>
               <button className="danger" onClick={() => deleteDay(day.id)}>Delete day</button>
+            </div>
+          </div>
+
+          <div style={{marginTop:10}}>
+            <label style={{display:'block',marginBottom:6,fontSize:12,color:'#475569'}}>Paste exercises (one per line) and press "Import"</label>
+            <div style={{display:'flex',gap:8}}>
+              <textarea
+                placeholder="e.g. Squat\nBench press\nBarbell row"
+                value={importTexts[day.id] || ''}
+                onChange={(e) => setImportTexts(prev => ({ ...prev, [day.id]: e.target.value }))}
+                rows={3}
+                style={{flex:1,border:'1px solid #e5e7eb',borderRadius:10,padding:10}}
+              />
+              <div style={{display:'grid',alignContent:'start',gap:8}}>
+                <button onClick={() => importExercises(day.id)}>Import</button>
+                <button className="secondary" onClick={() => setImportTexts(prev => ({ ...prev, [day.id]: '' }))}>Clear</button>
+              </div>
             </div>
           </div>
 
