@@ -2,12 +2,11 @@
   import ScheduleManager from './ScheduleManager'
   import { supabase } from '../lib/supabaseClient'
 
-const btnStyle = { padding: '10px 16px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }
-const btnSecondaryStyle = { ...btnStyle, backgroundColor: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1' }
-const cardStyle = { backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }
-const statBoxStyle = { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }
-const statValueStyle = { fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }
-const statLabelStyle = { fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', fontWeight: 600 }
+const btnStyle = { padding: '8px 16px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }
+const btnSecondaryStyle = { ...btnStyle, backgroundColor: '#fff', color: '#334155', border: '1px solid #cbd5e1' }
+const statBoxStyle = { backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', display: 'flex', alignItems: 'baseline', gap: '8px' }
+const statValueStyle = { fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }
+const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }
 
   export default function Dashboard({ session }) {
     const userId = session.user.id
@@ -137,14 +136,14 @@ const statLabelStyle = { fontSize: '0.75rem', color: '#64748b', textTransform: '
     }
 
     const headerRight = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px', padding: '16px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 16px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: syncing ? '#3b82f6' : loading ? '#eab308' : '#22c55e' }}></div>
           <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#475569' }}>
             {syncing ? 'Saving changes...' : loading ? 'Loading...' : 'All changes saved'}
           </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
           <button style={btnStyle} onClick={saveNow}>Save</button>
           <button style={btnSecondaryStyle} onClick={reloadFromServer}>Reload</button>
           <button style={btnSecondaryStyle} onClick={signOut}>Sign Out</button>
@@ -153,33 +152,29 @@ const statLabelStyle = { fontSize: '0.75rem', color: '#64748b', textTransform: '
     )
 
     return (
-      <section style={{ maxWidth: 800, margin: '0 auto', padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        <header>
-          <h2 style={{ margin: '0 0 8px 0', fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Welcome back, {session.user.email}</h2>
-          <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, opacity: 0.8 }}>{insight}</p>
-          {headerRight}
-        </header>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={cardStyle}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', color: '#0f172a' }}>Progress Overview</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '12px' }}>
-              <div style={statBoxStyle}>
-                <span style={statValueStyle}>{schedule.length}</span>
-                <span style={statLabelStyle}>Days</span>
-              </div>
-              <div style={statBoxStyle}>
-                <span style={statValueStyle}>{schedule.reduce((acc, day) => acc + day.exercises.length, 0)}</span>
-                <span style={statLabelStyle}>Exercises</span>
-              </div>
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <header style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h2 style={{ margin: '0 0 4px 0', fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Welcome back, {session.user.email}</h2>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>{insight}</p>
+            </div>
+            {headerRight}
+          </div>
+          
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={statBoxStyle}>
+              <span style={statValueStyle}>{schedule.length}</span>
+              <span style={statLabelStyle}>Training Days</span>
+            </div>
+            <div style={statBoxStyle}>
+              <span style={statValueStyle}>{schedule.reduce((acc, day) => acc + day.exercises.length, 0)}</span>
+              <span style={statLabelStyle}>Total Exercises</span>
             </div>
           </div>
+        </header>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a', paddingLeft: '4px' }}>Your Schedule</h3>
-            <ScheduleManager schedule={schedule} setSchedule={setSchedule} />
-          </div>
-        </div>
+        <ScheduleManager schedule={schedule} setSchedule={setSchedule} />
       </section>
     )
   }
