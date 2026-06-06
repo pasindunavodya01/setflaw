@@ -82,9 +82,8 @@ const statLabelStyle = { fontSize: '0.75rem', color: '#64748b', textTransform: '
           console.error('Failed to save schedule:', error.message)
           setInsight('Failed to save. Working offline.')
         } else {
-          const totalSets = schedule.reduce((acc, day) => acc + day.exercises.reduce((s, exercise) => s + exercise.sets.length, 0), 0)
           const totalExercises = schedule.reduce((acc, day) => acc + day.exercises.length, 0)
-          setInsight(`You have ${schedule.length} training day(s), ${totalExercises} exercise(s), and ${totalSets} set(s) logged.`)
+          setInsight(`You have ${schedule.length} training day(s) and ${totalExercises} exercise(s) logged.`)
         }
       }, 800)
       return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
@@ -172,10 +171,6 @@ const statLabelStyle = { fontSize: '0.75rem', color: '#64748b', textTransform: '
               <div style={statBoxStyle}>
                 <span style={statValueStyle}>{schedule.reduce((acc, day) => acc + day.exercises.length, 0)}</span>
                 <span style={statLabelStyle}>Exercises</span>
-              </div>
-              <div style={statBoxStyle}>
-                <span style={statValueStyle}>{schedule.reduce((acc, day) => acc + day.exercises.reduce((s, exercise) => s + exercise.sets.length, 0), 0)}</span>
-                <span style={statLabelStyle}>Sets</span>
               </div>
             </div>
           </div>
