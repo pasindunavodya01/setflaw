@@ -4,7 +4,7 @@
 
 const btnStyle = { padding: '8px 16px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }
 const btnSecondaryStyle = { ...btnStyle, backgroundColor: '#fff', color: '#334155', border: '1px solid #cbd5e1' }
-const statBoxStyle = { backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', display: 'flex', alignItems: 'baseline', gap: '8px' }
+const statBoxStyle = { flex: 1, backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', display: 'flex', alignItems: 'baseline', gap: '8px' }
 const statValueStyle = { fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }
 const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }
 
@@ -88,10 +88,6 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
       return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     }, [schedule, loading, scheduleRowId, userId])
 
-    const signOut = async () => {
-      await supabase.auth.signOut()
-    }
-
     const saveNow = async () => {
       setSyncing(true)
       setInsight('Saving...')
@@ -135,6 +131,12 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
       }
     }
 
+    useEffect(() => {
+      const listener = () => reloadFromServer()
+      window.addEventListener('trigger-reload', listener)
+      return () => window.removeEventListener('trigger-reload', listener)
+    })
+
     const headerRight = (
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 16px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -145,8 +147,6 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
         </div>
         <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
           <button style={btnStyle} onClick={saveNow}>Save</button>
-          <button style={btnSecondaryStyle} onClick={reloadFromServer}>Reload</button>
-          <button style={btnSecondaryStyle} onClick={signOut}>Sign Out</button>
         </div>
       </div>
     )
@@ -156,7 +156,7 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
         <header style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <h2 style={{ margin: '0 0 4px 0', fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Welcome back, {session.user.email}</h2>
+              <h2 style={{ margin: '0 0 4px 0', fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Ready to crush your goals today? 💪</h2>
               <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>{insight}</p>
             </div>
             {headerRight}

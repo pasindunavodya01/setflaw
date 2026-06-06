@@ -116,7 +116,7 @@ export default function ScheduleManager({ schedule, setSchedule }) {
           
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', borderBottom: isExpanded ? '1px solid #e2e8f0' : 'none', paddingBottom: isExpanded ? '12px' : '0' }}>
             <input 
-              style={{ ...inputStyle, fontSize: '1.125rem', fontWeight: 700, border: 'none', padding: '4px', backgroundColor: 'transparent', flex: 1, minWidth: 0 }}
+              style={{ ...inputStyle, fontSize: '1rem', fontWeight: 700, border: 'none', padding: '4px', backgroundColor: 'transparent', flex: 1, minWidth: 0 }}
               value={day.name}
               onChange={(event) => updateDayName(day.id, event.target.value)}
               placeholder="Day name"
@@ -124,7 +124,6 @@ export default function ScheduleManager({ schedule, setSchedule }) {
             <button style={{ ...btnSecondaryStyle, padding: '6px 12px', flexShrink: 0 }} onClick={() => setExpandedDayId(isExpanded ? null : day.id)}>
               {isExpanded ? 'Collapse' : 'Expand'}
             </button>
-            <button style={{ ...btnDangerStyle, padding: '8px' }} onClick={() => deleteDay(day.id)} title="Delete Workout Day">🗑️</button>
           </div>
 
           {isExpanded && (
@@ -188,6 +187,7 @@ export default function ScheduleManager({ schedule, setSchedule }) {
                             </div>
                           </div>
                         </details>
+                        <button style={{...btnDangerStyle, width: '100%', padding: '10px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '0.875rem', fontWeight: 600, marginTop: '8px'}} onClick={() => deleteDay(day.id)}>Delete Workout Day</button>
                       </div>
             </>
           )}
