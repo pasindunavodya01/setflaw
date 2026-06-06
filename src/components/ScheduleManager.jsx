@@ -28,7 +28,10 @@ export default function ScheduleManager({ schedule, setSchedule }) {
   }
 
   const deleteDay = (dayId) => {
-    setSchedule(schedule.filter(day => day.id !== dayId))
+    if (window.confirm('Are you sure you want to delete this workout day?')) {
+      setSchedule(schedule.filter(day => day.id !== dayId))
+      setExpandedDayId(null)
+    }
   }
 
   const addExercise = (dayId) => {
@@ -56,7 +59,9 @@ export default function ScheduleManager({ schedule, setSchedule }) {
   }
 
   const deleteExercise = (dayId, exerciseId) => {
-    setSchedule(schedule.map(day => day.id === dayId ? { ...day, exercises: day.exercises.filter(ex => ex.id !== exerciseId) } : day))
+    if (window.confirm('Are you sure you want to delete this exercise?')) {
+      setSchedule(schedule.map(day => day.id === dayId ? { ...day, exercises: day.exercises.filter(ex => ex.id !== exerciseId) } : day))
+    }
   }
 
   const addSet = (dayId, exerciseId) => {
@@ -86,13 +91,15 @@ export default function ScheduleManager({ schedule, setSchedule }) {
   }
 
   const deleteSet = (dayId, exerciseId, setId) => {
-    setSchedule(schedule.map(day => {
-      if (day.id !== dayId) return day
-      return {
-        ...day,
-        exercises: day.exercises.map(ex => ex.id === exerciseId ? { ...ex, sets: ex.sets.filter(set => set.id !== setId) } : ex),
-      }
-    }))
+    if (window.confirm('Are you sure you want to delete this set?')) {
+      setSchedule(schedule.map(day => {
+        if (day.id !== dayId) return day
+        return {
+          ...day,
+          exercises: day.exercises.map(ex => ex.id === exerciseId ? { ...ex, sets: ex.sets.filter(set => set.id !== setId) } : ex),
+        }
+      }))
+    }
   }
 
   const inputStyle = { width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem', boxSizing: 'border-box', backgroundColor: '#fff', color: '#111827' }
@@ -126,7 +133,7 @@ export default function ScheduleManager({ schedule, setSchedule }) {
             {isExpanded && (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button style={{...btnSecondaryStyle, flex: 1}} onClick={() => addExercise(day.id)}>+ Exercise</button>
-                <button style={{...btnDangerStyle, flex: 1}} onClick={() => { deleteDay(day.id); setExpandedDayId(null); }}>Delete Day</button>
+                <button style={{...btnDangerStyle, flex: 1}} onClick={() => deleteDay(day.id)}>Delete Day</button>
               </div>
             )}
           </div>

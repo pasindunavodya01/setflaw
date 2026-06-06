@@ -156,8 +156,8 @@ const statLabelStyle = { fontSize: '0.75rem', color: '#64748b', textTransform: '
     return (
       <section style={{ maxWidth: 800, margin: '0 auto', padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <header>
-          <h2 style={{ margin: '0 0 8px 0', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.025em' }}>Welcome back, {session.user.email}</h2>
-          <p style={{ margin: 0, color: '#475569', fontSize: '1rem', lineHeight: 1.5 }}>{insight}</p>
+          <h2 style={{ margin: '0 0 8px 0', fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Welcome back, {session.user.email}</h2>
+          <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, opacity: 0.8 }}>{insight}</p>
           {headerRight}
         </header>
 
