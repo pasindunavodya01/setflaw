@@ -33,7 +33,19 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
 
         if (error) {
           console.error('Error loading schedules:', error.message)
-          setSchedule([{ id: Date.now(), name: 'Upper body', exercises: [] }])
+          const localData = localStorage.getItem(`schedule_backup_${userId}`)
+          if (localData) {
+            try {
+              const parsed = JSON.parse(localData)
+              setSchedule(parsed.data || [])
+              setScheduleRowId(parsed.id)
+              setInsight('Loaded local backup (offline)')
+            } catch (e) {
+              setSchedule([{ id: Date.now(), name: 'Upper body', exercises: [] }])
+            }
+          } else {
+            setSchedule([{ id: Date.now(), name: 'Upper body', exercises: [] }])
+          }
           setLoading(false)
           return
         }
@@ -68,6 +80,14 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
       if (loading || !scheduleRowId) return
       setInsight('Saving...')
       setSyncing(true)
+
+      // Save locally as backup
+      try {
+        localStorage.setItem(`schedule_backup_${userId}`, JSON.stringify({ id: scheduleRowId, data: schedule, updated: Date.now() }))
+      } catch (e) {
+        console.error('Local backup failed', e)
+      }
+
       if (saveTimer.current) clearTimeout(saveTimer.current)
       saveTimer.current = setTimeout(async () => {
         const payload = { id: scheduleRowId, user_id: userId, name: 'Default', data: schedule }
@@ -135,6 +155,15 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
       const listener = () => reloadFromServer()
       window.addEventListener('trigger-reload', listener)
       return () => window.removeEventListener('trigger-reload', listener)
+    })
+
+    useEffect(() => {
+      const handleOnline = () => {
+        setInsight('Back online! Syncing...')
+        saveNow()
+      }
+      window.addEventListener('online', handleOnline)
+      return () => window.removeEventListener('online', handleOnline)
     })
 
     const headerRight = (
