@@ -3,8 +3,8 @@ import { supabase } from '../lib/supabaseClient'
 
 const initialState = { email: '', password: '', confirmPassword: '' }
 
-export default function AuthForm() {
-  const [mode, setMode] = useState('login')
+export default function AuthForm({ initialMode = 'login', onBack }) {
+  const [mode, setMode] = useState(initialMode)
   const [form, setForm] = useState(initialState)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -87,6 +87,7 @@ export default function AuthForm() {
       {message && <div className="auth-message">{message}</div>}
 
       <div className="auth-switch">
+        {onBack && <button type="button" onClick={onBack}>Back to home</button>}
         {mode !== 'login' && <button onClick={() => { setMode('login'); setMessage(''); setForm(initialState) }}>Back to login</button>}
         {mode === 'login' && (
           <>
