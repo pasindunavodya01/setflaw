@@ -12,7 +12,7 @@ function createSet() {
   return { id: Date.now() + Math.random(), weight: '', reps: '' }
 }
 
-export default function ScheduleManager({ schedule, setSchedule }) {
+export default function ScheduleManager({ schedule, setSchedule, onExplicitClear }) {
   const [newDayName, setNewDayName] = useState('')
   const [importTexts, setImportTexts] = useState({})
   const [expandedDayId, setExpandedDayId] = useState(null)
@@ -28,10 +28,16 @@ export default function ScheduleManager({ schedule, setSchedule }) {
   }
 
   const deleteDay = (dayId) => {
-    if (window.confirm('Are you sure you want to delete this workout day?')) {
-      setSchedule(schedule.filter(day => day.id !== dayId))
-      if (expandedDayId === dayId) setExpandedDayId(null)
-    }
+    const next = schedule.filter(day => day.id !== dayId)
+    const isClearingAll = next.length === 0
+    const message = isClearingAll
+      ? 'This is your last day. Deleting it will clear your entire schedule. Continue?'
+      : 'Are you sure you want to delete this workout day?'
+    if (!window.confirm(message)) return
+
+    if (isClearingAll && typeof onExplicitClear === 'function') onExplicitClear()
+    setSchedule(next)
+    if (expandedDayId === dayId) setExpandedDayId(null)
   }
 
   const addExercise = (dayId) => {

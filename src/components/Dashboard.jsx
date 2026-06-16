@@ -16,12 +16,41 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
     const [loading, setLoading] = useState(true)
     const [syncing, setSyncing] = useState(false)
     const saveTimer = useRef(null)
+    const suppressNextAutoSave = useRef(true)
+    const allowEmptyNextSave = useRef(false)
+
+    const readLocalBackup = () => {
+      try {
+        const raw = localStorage.getItem(`schedule_backup_${userId}`)
+        if (!raw) return null
+        const parsed = JSON.parse(raw)
+        const data = Array.isArray(parsed?.data) ? parsed.data : null
+        const updated = typeof parsed?.updated === 'number' ? parsed.updated : 0
+        const id = parsed?.id ?? null
+        return { id, data, updated }
+      } catch {
+        return null
+      }
+    }
+
+    const isNonEmptyScheduleArray = (value) =>
+      Array.isArray(value) && value.length > 0
 
     // load schedule (stored as JSON in `schedules.data`)
     useEffect(() => {
       let mounted = true
       const load = async () => {
         setLoading(true)
+        suppressNextAutoSave.current = true
+
+        const localBackup = readLocalBackup()
+        if (localBackup?.data && mounted) {
+          // Show something immediately (esp. offline); server may still win below.
+          setSchedule(localBackup.data)
+          if (localBackup.id) setScheduleRowId(localBackup.id)
+          setInsight('Loaded local backup')
+        }
+
         const { data, error } = await supabase
           .from('schedules')
           .select('*')
@@ -33,29 +62,40 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
 
         if (error) {
           console.error('Error loading schedules:', error.message)
-          const localData = localStorage.getItem(`schedule_backup_${userId}`)
-          if (localData) {
-            try {
-              const parsed = JSON.parse(localData)
-              setSchedule(parsed.data || [])
-              setScheduleRowId(parsed.id)
-              setInsight('Loaded local backup (offline)')
-            } catch (e) {
-              setSchedule([{ id: Date.now(), name: 'Upper body', exercises: [] }])
-            }
-          } else {
+          if (!isNonEmptyScheduleArray(localBackup?.data)) {
             setSchedule([{ id: Date.now(), name: 'Upper body', exercises: [] }])
+          } else {
+            setInsight('Loaded local backup (offline)')
           }
           setLoading(false)
           return
         }
 
         if (data) {
-          try {
-            setSchedule(data.data || [])
+          const serverSchedule = Array.isArray(data.data) ? data.data : null
+          const serverUpdated =
+            typeof data.updated_at === 'string' ? Date.parse(data.updated_at) : 0
+
+          // If server is empty/invalid but we have a non-empty local backup, prefer local to avoid wiping.
+          if (!isNonEmptyScheduleArray(serverSchedule) && isNonEmptyScheduleArray(localBackup?.data)) {
+            setSchedule(localBackup.data)
             setScheduleRowId(data.id)
-          } catch (e) {
-            setSchedule([])
+            setInsight('Restored from local backup')
+          } else if (serverSchedule) {
+            // Prefer the most recently updated source when both exist and are valid.
+            if (isNonEmptyScheduleArray(localBackup?.data) && localBackup.updated > serverUpdated) {
+              setSchedule(localBackup.data)
+              setScheduleRowId(data.id)
+              setInsight('Loaded local backup (newer)')
+            } else {
+              setSchedule(serverSchedule)
+              setScheduleRowId(data.id)
+              setInsight('Loaded from server')
+            }
+          } else {
+            setSchedule([{ id: Date.now(), name: 'Upper body', exercises: [] }])
+            setScheduleRowId(data.id)
+            setInsight('Server schedule was empty; created a default day')
           }
         } else {
           // create default schedule row
@@ -65,6 +105,7 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
           else {
             setSchedule(insert.data.data || [])
             setScheduleRowId(insert.data.id)
+            setInsight('Created a new schedule')
           }
         }
 
@@ -78,14 +119,25 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
     // auto-save (debounced) schedule changes into Supabase
     useEffect(() => {
       if (loading || !scheduleRowId) return
+      if (suppressNextAutoSave.current) {
+        suppressNextAutoSave.current = false
+        return
+      }
+      if (schedule.length === 0 && !allowEmptyNextSave.current) {
+        setSyncing(false)
+        setInsight('Schedule is empty — not auto-saving. Use Reset/Clear to confirm.')
+        return
+      }
       setInsight('Saving...')
       setSyncing(true)
 
       // Save locally as backup
-      try {
-        localStorage.setItem(`schedule_backup_${userId}`, JSON.stringify({ id: scheduleRowId, data: schedule, updated: Date.now() }))
-      } catch (e) {
-        console.error('Local backup failed', e)
+      if (schedule.length > 0 || allowEmptyNextSave.current) {
+        try {
+          localStorage.setItem(`schedule_backup_${userId}`, JSON.stringify({ id: scheduleRowId, data: schedule, updated: Date.now() }))
+        } catch (e) {
+          console.error('Local backup failed', e)
+        }
       }
 
       if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -104,6 +156,7 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
           const totalExercises = schedule.reduce((acc, day) => acc + day.exercises.length, 0)
           setInsight(`You have ${schedule.length} training day(s) and ${totalExercises} exercise(s) logged.`)
         }
+        allowEmptyNextSave.current = false
       }, 800)
       return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     }, [schedule, loading, scheduleRowId, userId])
@@ -112,6 +165,10 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
       setSyncing(true)
       setInsight('Saving...')
       try {
+        if (schedule.length === 0 && !allowEmptyNextSave.current) {
+          setInsight('Schedule is empty — not saving. Use Reset/Clear to confirm.')
+          return
+        }
         if (scheduleRowId) {
           const payload = { id: scheduleRowId, user_id: userId, name: 'Default', data: schedule }
           const { error } = await supabase.from('schedules').upsert(payload).select().single()
@@ -127,7 +184,25 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
         setInsight('Save failed')
       } finally {
         setSyncing(false)
+        allowEmptyNextSave.current = false
       }
+    }
+
+    const resetSchedule = async () => {
+      if (!window.confirm('Reset will permanently clear ALL days and exercises on this device and in your account. Continue?')) return
+      const typed = window.prompt('Type CLEAR to confirm resetting your schedule.')
+      if (typed !== 'CLEAR') {
+        setInsight('Reset cancelled')
+        return
+      }
+      if (!window.confirm('Final confirmation: this will delete everything. Proceed with reset?')) {
+        setInsight('Reset cancelled')
+        return
+      }
+      allowEmptyNextSave.current = true
+      setSchedule([])
+      // Persist immediately so the clear is an explicit, intentional action.
+      await saveNow()
     }
 
     const reloadFromServer = async () => {
@@ -203,7 +278,23 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
           </div>
         </header>
 
-        <ScheduleManager schedule={schedule} setSchedule={setSchedule} />
+        <ScheduleManager
+          schedule={schedule}
+          setSchedule={setSchedule}
+          onExplicitClear={() => { allowEmptyNextSave.current = true }}
+        />
+
+        <details style={{ backgroundColor: '#fff', border: '1px solid #fee2e2', borderRadius: '12px', padding: '12px 16px' }}>
+          <summary style={{ cursor: 'pointer', color: '#b91c1c', fontWeight: 700 }}>Danger zone</summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+            <p style={{ margin: 0, color: '#7f1d1d', fontSize: '0.875rem' }}>
+              Reset will delete your entire schedule (days and exercises). This is intended only for starting over.
+            </p>
+            <button style={{ ...btnSecondaryStyle, borderColor: '#fecaca', color: '#b91c1c' }} onClick={resetSchedule}>
+              Reset schedule…
+            </button>
+          </div>
+        </details>
       </section>
     )
   }
