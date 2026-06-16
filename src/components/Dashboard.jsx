@@ -1,5 +1,6 @@
-  import { useEffect, useMemo, useState, useRef } from 'react'
+  import { useEffect, useState, useRef } from 'react'
   import ScheduleManager from './ScheduleManager'
+  import BodyWeightTracker from './BodyWeightTracker'
   import { supabase } from '../lib/supabaseClient'
 
 const btnStyle = { padding: '8px 16px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }
@@ -277,6 +278,8 @@ const statLabelStyle = { fontSize: '0.875rem', color: '#64748b', fontWeight: 500
             </div>
           </div>
         </header>
+
+        <BodyWeightTracker userId={userId} />
 
         <ScheduleManager
           schedule={schedule}

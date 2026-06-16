@@ -5,7 +5,7 @@ function createDay() {
 }
 
 function createExercise() {
-  return { id: Date.now() + Math.random(), name: 'New exercise', sets: [{ id: Date.now(), weight: '', reps: '' }] }
+  return { id: Date.now() + Math.random(), name: 'New exercise', note: '', sets: [{ id: Date.now(), weight: '', reps: '' }] }
 }
 
 function createSet() {
@@ -16,6 +16,7 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
   const [newDayName, setNewDayName] = useState('')
   const [importTexts, setImportTexts] = useState({})
   const [expandedDayId, setExpandedDayId] = useState(null)
+  const [editingNoteId, setEditingNoteId] = useState(null)
 
   const addDay = () => {
     const name = newDayName.trim() || 'New workout day'
@@ -151,6 +152,26 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
                               <button style={{...btnDangerStyle, padding: '4px'}} onClick={() => deleteExercise(day.id, exercise.id)} title="Remove Exercise">✕</button>
                             </div>
 
+                            {(exercise.note || editingNoteId === exercise.id) && (
+                              <div style={{ paddingLeft: '32px' }}>
+                                {editingNoteId === exercise.id ? (
+                                  <textarea
+                                    style={{ ...inputStyle, resize: 'vertical', minHeight: '60px', backgroundColor: '#fffbeb', borderColor: '#fde68a' }}
+                                    placeholder="Form cues, machine settings, reminders..."
+                                    value={exercise.note || ''}
+                                    onChange={(event) => updateExercise(day.id, exercise.id, { note: event.target.value })}
+                                    rows={2}
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-wrap' }}>
+                                    <span style={{ fontWeight: 600, color: '#92400e' }}>Note: </span>
+                                    {exercise.note}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px' }}>
                               {exercise.sets.map((set, idx) => (
                                 <div key={set.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -175,7 +196,15 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
                                   <button style={{...btnDangerStyle, padding: '4px'}} onClick={() => deleteSet(day.id, exercise.id, set.id)}>✕</button>
                                 </div>
                               ))}
-                              <button style={{ ...btnSecondaryStyle, alignSelf: 'flex-start', padding: '4px 8px', fontSize: '0.75rem', marginTop: '4px' }} onClick={() => addSet(day.id, exercise.id)}>+ Add Set</button>
+                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                <button style={{ ...btnSecondaryStyle, padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => addSet(day.id, exercise.id)}>+ Add Set</button>
+                                <button
+                                  style={{ ...btnSecondaryStyle, padding: '4px 8px', fontSize: '0.75rem' }}
+                                  onClick={() => setEditingNoteId(editingNoteId === exercise.id ? null : exercise.id)}
+                                >
+                                  {exercise.note || editingNoteId === exercise.id ? 'Edit note' : '+ Add note'}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ))}
