@@ -37,7 +37,7 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function BodyWeightTracker({ userId }) {
+export default function BodyWeightTracker({ userId, isOnline = true }) {
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -48,6 +48,12 @@ export default function BodyWeightTracker({ userId }) {
   const [showHistory, setShowHistory] = useState(false)
 
   const loadEntries = async () => {
+    if (!navigator.onLine) {
+      setLoading(false)
+      setMessage('You are offline. Connect to the internet to load weight history.')
+      return
+    }
+
     setLoading(true)
     const { data, error } = await supabase
       .from('body_weights')
@@ -74,6 +80,11 @@ export default function BodyWeightTracker({ userId }) {
   const latestEntry = entries[0] ?? null
 
   const saveWeight = async () => {
+    if (!isOnline || !navigator.onLine) {
+      window.alert('You are offline. Connect to the internet to log weight.')
+      return
+    }
+
     const parsed = Number(weight)
     if (!Number.isFinite(parsed) || parsed <= 0) {
       setMessage('Enter a valid weight greater than 0.')
@@ -111,6 +122,10 @@ export default function BodyWeightTracker({ userId }) {
   }
 
   const deleteEntry = async (entry) => {
+    if (!isOnline || !navigator.onLine) {
+      window.alert('You are offline. Connect to the internet to delete entries.')
+      return
+    }
     if (!window.confirm(`Delete weight entry from ${formatDate(entry.recorded_at)}?`)) return
 
     const { error } = await supabase.from('body_weights').delete().eq('id', entry.id).eq('user_id', userId)
@@ -190,7 +205,7 @@ export default function BodyWeightTracker({ userId }) {
             onChange={(e) => setNote(e.target.value)}
           />
         </label>
-        <button style={{ ...btnStyle, opacity: saving ? 0.7 : 1 }} onClick={saveWeight} disabled={saving}>
+        <button style={{ ...btnStyle, opacity: saving || !isOnline ? 0.7 : 1 }} onClick={saveWeight} disabled={saving || !isOnline}>
           {saving ? 'Saving...' : 'Log weight'}
         </button>
       </div>

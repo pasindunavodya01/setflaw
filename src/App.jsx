@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabaseClient'
+import { useOnlineStatus } from './hooks/useOnlineStatus'
 import Header from './components/Header'
 import Dashboard from './components/Dashboard'
 import AuthForm from './components/AuthForm'
@@ -8,6 +9,7 @@ import LandingPage from './components/LandingPage'
 export default function App() {
   const [session, setSession] = useState(null)
   const [authMode, setAuthMode] = useState(null) // 'login', 'register', or null for landing page
+  const isOnline = useOnlineStatus()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -27,7 +29,7 @@ export default function App() {
       <Header session={session} />
       <main style={{ padding: '24px 16px', maxWidth: '1200px', margin: '0 auto' }}>
         {session ? (
-          <Dashboard session={session} />
+          <Dashboard session={session} isOnline={isOnline} />
         ) : authMode ? (
           <AuthForm initialMode={authMode} onBack={() => setAuthMode(null)} />
         ) : (

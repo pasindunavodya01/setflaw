@@ -12,23 +12,34 @@ function createSet() {
   return { id: Date.now() + Math.random(), weight: '', reps: '' }
 }
 
-export default function ScheduleManager({ schedule, setSchedule, onExplicitClear }) {
+export default function ScheduleManager({ schedule, setSchedule, onExplicitClear, isOnline = true }) {
   const [newDayName, setNewDayName] = useState('')
   const [importTexts, setImportTexts] = useState({})
   const [expandedDayId, setExpandedDayId] = useState(null)
   const [editingNoteId, setEditingNoteId] = useState(null)
 
+  const guardOnline = () => {
+    if (!isOnline || !navigator.onLine) {
+      window.alert('You are offline. Connect to the internet to make changes.')
+      return false
+    }
+    return true
+  }
+
   const addDay = () => {
+    if (!guardOnline()) return
     const name = newDayName.trim() || 'New workout day'
     setSchedule([...schedule, { ...createDay(), name }])
     setNewDayName('')
   }
 
   const updateDayName = (dayId, name) => {
+    if (!guardOnline()) return
     setSchedule(schedule.map(day => day.id === dayId ? { ...day, name } : day))
   }
 
   const deleteDay = (dayId) => {
+    if (!guardOnline()) return
     const next = schedule.filter(day => day.id !== dayId)
     const isClearingAll = next.length === 0
     const message = isClearingAll
@@ -42,10 +53,12 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
   }
 
   const addExercise = (dayId) => {
+    if (!guardOnline()) return
     setSchedule(schedule.map(day => day.id === dayId ? { ...day, exercises: [...day.exercises, createExercise()] } : day))
   }
 
   const importExercises = (dayId) => {
+    if (!guardOnline()) return
     const text = (importTexts[dayId] || '').trim()
     if (!text) return
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
@@ -56,6 +69,7 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
   }
 
   const updateExercise = (dayId, exerciseId, updates) => {
+    if (!guardOnline()) return
     setSchedule(schedule.map(day => {
       if (day.id !== dayId) return day
       return {
@@ -66,12 +80,14 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
   }
 
   const deleteExercise = (dayId, exerciseId) => {
+    if (!guardOnline()) return
     if (window.confirm('Are you sure you want to delete this exercise?')) {
       setSchedule(schedule.map(day => day.id === dayId ? { ...day, exercises: day.exercises.filter(ex => ex.id !== exerciseId) } : day))
     }
   }
 
   const addSet = (dayId, exerciseId) => {
+    if (!guardOnline()) return
     setSchedule(schedule.map(day => {
       if (day.id !== dayId) return day
       return {
@@ -82,6 +98,7 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
   }
 
   const updateSet = (dayId, exerciseId, setId, updates) => {
+    if (!guardOnline()) return
     setSchedule(schedule.map(day => {
       if (day.id !== dayId) return day
       return {
@@ -98,6 +115,7 @@ export default function ScheduleManager({ schedule, setSchedule, onExplicitClear
   }
 
   const deleteSet = (dayId, exerciseId, setId) => {
+    if (!guardOnline()) return
     if (window.confirm('Are you sure you want to delete this set?')) {
       setSchedule(schedule.map(day => {
         if (day.id !== dayId) return day
